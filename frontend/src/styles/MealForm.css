@@ -1,14 +1,11 @@
 .meal-form-container {
   background: white;
-  border-radius: 12px;
-  padding: 25px;
 }
 
 .meal-form-container h2 {
   color: #333;
   margin-top: 0;
   margin-bottom: 20px;
-  font-size: 1.3rem;
 }
 
 .form-group {
@@ -20,7 +17,6 @@
   margin-bottom: 8px;
   color: #333;
   font-weight: 600;
-  font-size: 0.95rem;
 }
 
 .form-group input,
@@ -30,14 +26,6 @@
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.3s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .calorie-preview {
@@ -46,12 +34,7 @@
   border-radius: 6px;
   margin-bottom: 20px;
   color: #1976d2;
-  font-size: 0.95rem;
   text-align: center;
-}
-
-.calorie-preview strong {
-  font-weight: 600;
 }
 
 .error-message {
@@ -60,7 +43,6 @@
   padding: 12px;
   border-radius: 6px;
   margin-bottom: 20px;
-  font-size: 0.9rem;
 }
 
 .submit-btn {
@@ -71,16 +53,5 @@
   border: none;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.3s;
-}
-
-.submit-btn:hover:not(:disabled) {
-  background: #5568d3;
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
