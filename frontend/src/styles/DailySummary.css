@@ -1,0 +1,137 @@
+.daily-summary-container {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+}
+
+.daily-summary-container h2 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.summary-card {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  border-left: 4px solid #667eea;
+}
+
+.card-label {
+  color: #666;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.card-value {
+  color: #333;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.card-unit {
+  color: #999;
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+.status-badge {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-label {
+  color: #666;
+  font-weight: 600;
+}
+
+.status-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.meals-list h3 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.meals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.meal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.meal-info {
+  flex: 1;
+}
+
+.meal-name {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.meal-details {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.delete-btn {
+  background: #ff5252;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.delete-btn:hover {
+  background: #ff1744;
+}
+
+.no-meals {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 600px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+}
