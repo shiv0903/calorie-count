@@ -145,31 +145,18 @@ def get_daily_summary(date: str = None, db: Session = Depends(get_db)):
 def health_check():
     return {"status": "ok"}
 
-@app.get("/api/debug")
-def debug():
-    info = {}
-    info["cwd"] = os.getcwd()
-    info["static_exists"] = os.path.exists("/app/static")
-    info["app_contents"] = os.listdir("/app") if os.path.exists("/app") else "no /app"
-    info["static_contents"] = os.listdir("/app/static") if os.path.exists("/app/static") else "no /app/static"
-    return info
-
-static_dir = "/app/static"
-if os.path.exists(static_dir):
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+# Mount the inner static folder so /static/js and /static/css resolve correctly
+app.mount("/static", StaticFiles(directory="/app/static/static"), name="static")
 
 @app.get("/")
 def serve_frontend():
-    index_path = os.path.join(static_dir, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path, media_type="text/html")
-    return {"error": "index.html not found", "static_dir_exists": os.path.exists(static_dir), "static_contents": os.listdir(static_dir) if os.path.exists(static_dir) else "missing", "app_contents": os.listdir("/app") if os.path.exists("/app") else "missing"}
+    return FileResponse("/app/static/index.html", media_type="text/html")
 
 @app.get("/{full_path:path}")
 def catch_all(full_path: str):
     if full_path.startswith("api/"):
         raise HTTPException(status_code=404, detail="API not found")
-    index_path = os.path.join(static_dir, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path, media_type="text/html")
-    return {"error": "Not found"}
+    file_path = os.path.join("/app/static", full_path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    return FileResponse("/app/static/index.html", media_type="text/html")
