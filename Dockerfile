@@ -1,9 +1,9 @@
-FROM python:3.11-slim
+# Build timestamp: 2026-07-20-2054
 FROM python:3.11-slim
 WORKDIR /app
-COPY frontend/build/ /app/static/
 COPY backend/requirements.txt .
 RUN pip install -r requirements.txt
 COPY backend/ ./
+COPY frontend/build/ ./static/
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
