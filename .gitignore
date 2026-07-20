@@ -3,7 +3,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -21,7 +20,6 @@ wheels/
 node_modules/
 npm-debug.log
 yarn-error.log
-build/
 .env
 .env.local
 .DS_Store
