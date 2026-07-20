@@ -1,77 +1,83 @@
-import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
-import MealForm from '../components/MealForm';
-import DailySummary from '../components/DailySummary';
-import '../styles/DailyLogPage.css';
+.daily-log-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
 
-export default function DailyLogPage({ profile, user, onLogout }) {
-  const [summary, setSummary] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+.daily-log-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
-  useEffect(() => {
-    fetchSummary();
-  }, [date]);
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  const fetchSummary = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/api/daily-summary?date=${date}`);
-      setSummary(response.data);
-    } catch (error) {
-      console.error('Error fetching summary:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+.daily-log-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
 
-  const handleMealAdded = () => {
-    fetchSummary();
-  };
+.logout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
 
-  const handleMealDeleted = () => {
-    fetchSummary();
-  };
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
 
-  const handleDateChange = (e) => {
-    setDate(e.target.value);
-  };
+.daily-log-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
-  return (
-    <div className="daily-log-container">
-      <header className="daily-log-header">
-        <div className="header-content">
-          <h1>🏥 Calorie Count</h1>
-          <button onClick={onLogout} className="logout-btn">
-            Logout
-          </button>
-        </div>
-      </header>
+.date-selector {
+  text-align: center;
+  margin-bottom: 30px;
+}
 
-      <div className="daily-log-content">
-        <div className="date-selector">
-          <input
-            type="date"
-            value={date}
-            onChange={handleDateChange}
-            className="date-input"
-          />
-        </div>
+.date-input {
+  padding: 10px 15px;
+  border: 2px solid #667eea;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
 
-        <div className="log-grid">
-          <div className="log-section">
-            <MealForm onMealAdded={handleMealAdded} />
-          </div>
+.log-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
 
-          <div className="log-section">
-            {loading ? (
-              <div className="loader">Loading...</div>
-            ) : summary ? (
-              <DailySummary summary={summary} onMealDeleted={handleMealDeleted} />
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+.log-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loader {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+@media (max-width: 1000px) {
+  .log-grid {
+    grid-template-columns: 1fr;
+  }
 }
