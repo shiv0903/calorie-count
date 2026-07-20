@@ -1,7 +1,7 @@
 FROM python:3.11-slim
+FROM python:3.11-slim
 WORKDIR /app
-RUN mkdir -p /app/static
-COPY frontend/build /app/static
+COPY frontend/build/ /app/static/
 COPY backend/requirements.txt .
 RUN pip install -r requirements.txt
 COPY backend/ ./
