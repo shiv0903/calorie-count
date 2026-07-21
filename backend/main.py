@@ -83,6 +83,17 @@ def get_dishes(db: Session = Depends(get_db)):
     dishes = db.query(Dish).all()
     return [{"id": d.id, "name": d.name, "calories_per_100g": d.calories_per_100g} for d in dishes]
 
+@app.post("/api/dishes")
+def create_dish(name: str, calories_per_100g: float, cuisine: str = "Custom", db: Session = Depends(get_db)):
+    existing = db.query(Dish).filter(Dish.name == name).first()
+    if existing:
+        return {"id": existing.id, "name": existing.name, "calories_per_100g": existing.calories_per_100g}
+    new_dish = Dish(name=name, cuisine=cuisine, calories_per_100g=calories_per_100g)
+    db.add(new_dish)
+    db.commit()
+    db.refresh(new_dish)
+    return {"id": new_dish.id, "name": new_dish.name, "calories_per_100g": new_dish.calories_per_100g}
+
 @app.post("/api/meals")
 def create_meal(meal: MealCreate, db: Session = Depends(get_db)):
     dish = db.query(Dish).filter(Dish.id == meal.dish_id).first()
@@ -144,6 +155,15 @@ def get_daily_summary(date: str = None, db: Session = Depends(get_db)):
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
+
+@app.get("/api/debug")
+def debug():
+    info = {}
+    info["cwd"] = os.getcwd()
+    info["static_exists"] = os.path.exists("/app/static")
+    info["app_contents"] = os.listdir("/app") if os.path.exists("/app") else "no /app"
+    info["static_contents"] = os.listdir("/app/static") if os.path.exists("/app/static") else "no /app/static"
+    return info
 
 # Mount the inner static folder so /static/js and /static/css resolve correctly
 app.mount("/static", StaticFiles(directory="/app/static/static"), name="static")
