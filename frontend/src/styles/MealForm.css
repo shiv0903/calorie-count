@@ -55,3 +55,42 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #667eea;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.custom-dish-box {
+  background: #f5f7ff;
+  border: 1px solid #d8dcff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.custom-dish-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-btn {
+  padding: 12px;
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  flex: 1;
+}
+
+.custom-dish-actions .submit-btn {
+  flex: 1;
+}
