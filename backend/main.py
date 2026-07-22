@@ -15,7 +15,7 @@ from calculations import calculate_bmr, calculate_tdee
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
-SECRET_KEY = "your-secret-key"
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 USDA_API_KEY = os.getenv("USDA_API_KEY", "")
 
 def get_db():
@@ -131,7 +131,6 @@ def lookup_calories(name: str, current_user: User = Depends(get_current_user)):
     if not foods:
         raise HTTPException(status_code=404, detail=f"No nutrition match found for '{name}'")
 
-    # Find the calorie (Energy, kcal) value in the first matching food
     for food in foods:
         for nutrient in food.get("foodNutrients", []):
             nutrient_name = (nutrient.get("nutrientName") or "").lower()
