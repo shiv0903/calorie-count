@@ -7,7 +7,8 @@ import '../styles/DailyLogPage.css';
 export default function DailyLogPage({ profile, user, onLogout }) {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const today = new Date().toISOString().split('T')[0];
+  const [date, setDate] = useState(today);
 
   useEffect(() => {
     fetchSummary();
@@ -34,7 +35,13 @@ export default function DailyLogPage({ profile, user, onLogout }) {
   };
 
   const handleDateChange = (e) => {
-    setDate(e.target.value);
+    const picked = e.target.value;
+    // Don't allow future dates
+    if (picked > today) {
+      setDate(today);
+    } else {
+      setDate(picked);
+    }
   };
 
   return (
@@ -52,6 +59,7 @@ export default function DailyLogPage({ profile, user, onLogout }) {
           <input
             type="date"
             value={date}
+            max={today}
             onChange={handleDateChange}
             className="date-input"
           />
