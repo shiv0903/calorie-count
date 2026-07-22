@@ -10,12 +10,37 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.daily-log-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-profile-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.edit-profile-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .logout-btn {
@@ -26,6 +51,11 @@
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .daily-log-content {
@@ -44,6 +74,7 @@
   border: 2px solid #667eea;
   border-radius: 6px;
   font-size: 1rem;
+  cursor: pointer;
 }
 
 .log-grid {
