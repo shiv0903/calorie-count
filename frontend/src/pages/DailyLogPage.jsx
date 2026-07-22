@@ -4,7 +4,7 @@ import MealForm from '../components/MealForm';
 import DailySummary from '../components/DailySummary';
 import '../styles/DailyLogPage.css';
 
-export default function DailyLogPage({ profile, user, onLogout }) {
+export default function DailyLogPage({ profile, user, onLogout, onEditProfile }) {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const today = new Date().toISOString().split('T')[0];
@@ -36,7 +36,6 @@ export default function DailyLogPage({ profile, user, onLogout }) {
 
   const handleDateChange = (e) => {
     const picked = e.target.value;
-    // Don't allow future dates
     if (picked > today) {
       setDate(today);
     } else {
@@ -49,9 +48,14 @@ export default function DailyLogPage({ profile, user, onLogout }) {
       <header className="daily-log-header">
         <div className="header-content">
           <h1>Calorie Count</h1>
-          <button onClick={onLogout} className="logout-btn">
-            Logout
-          </button>
+          <div className="header-actions">
+            <button onClick={onEditProfile} className="edit-profile-btn">
+              Edit Profile
+            </button>
+            <button onClick={onLogout} className="logout-btn">
+              Logout
+            </button>
+          </div>
         </div>
       </header>
       <div className="daily-log-content">
