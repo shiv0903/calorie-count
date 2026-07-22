@@ -53,3 +53,53 @@ export default function App() {
       if (response.ok) {
         const data = await response.json();
         setProfile(data);
+        setPage('daily-log');
+      } else {
+        // No profile yet — send to setup
+        setPage('profile-setup');
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      setPage('profile-setup');
+    }
+  };
+
+  const handleProfileSetup = (profileData) => {
+    setProfile(profileData);
+    setPage('daily-log');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setProfile(null);
+    setPage('login');
+  };
+
+  if (loading) {
+    return (
+      <div className="container loading-container">
+        <div className="loader"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app">
+      {page === 'login' && (
+        <LoginPage onLoginSuccess={handleLoginSuccess} />
+      )}
+      {page === 'profile-setup' && (
+        <ProfileSetupPage onProfileSetup={handleProfileSetup} />
+      )}
+      {page === 'daily-log' && profile && (
+        <DailyLogPage
+          profile={profile}
+          user={user}
+          onLogout={handleLogout}
+        />
+      )}
+    </div>
+  );
+}
