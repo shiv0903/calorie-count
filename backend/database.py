@@ -16,14 +16,7 @@ else:
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# ============================================================
-# ⚠️ ONE-TIME RESET — WIPES ALL DATA to rebuild tables with
-# the new nutrition columns. REMOVE THIS LINE after the first
-# successful deploy, or every deploy will wipe all data!
-Base.metadata.drop_all(bind=engine)
-# ============================================================
-
-# Create tables (with new nutrition columns)
+# Create tables
 Base.metadata.create_all(bind=engine)
 
 # Seed dishes into database
@@ -82,10 +75,6 @@ def seed_dishes(db):
     db.add_all(dishes)
     db.commit()
 
-# Seed on startup
-db = SessionLocal()
-seed_dishes(db)
-db.close()
 # Seed on startup
 db = SessionLocal()
 seed_dishes(db)
