@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import api from '../utils/api';
 import '../styles/ProfileSetupPage.css';
 
-export default function ProfileSetupPage({ onProfileSetup }) {
+export default function ProfileSetupPage({ onProfileSetup, existingProfile }) {
+  const isEditing = !!existingProfile;
   const [formData, setFormData] = useState({
-    weight: '',
-    height: '',
-    age: '',
-    sex: 'male',
-    activity_level: 'moderate',
-    goal: 'maintain',
+    weight: existingProfile?.weight || '',
+    height: existingProfile?.height || '',
+    age: existingProfile?.age || '',
+    sex: existingProfile?.sex || 'male',
+    activity_level: existingProfile?.activity_level || 'moderate',
+    goal: existingProfile?.goal || 'maintain',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,8 +48,8 @@ export default function ProfileSetupPage({ onProfileSetup }) {
   return (
     <div className="profile-setup-container">
       <div className="profile-setup-box">
-        <h1>📋 Create Your Profile</h1>
-        <p className="subtitle">Tell us about yourself</p>
+        <h1>{isEditing ? 'Edit Your Profile' : 'Create Your Profile'}</h1>
+        <p className="subtitle">{isEditing ? 'Update your information' : 'Tell us about yourself'}</p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">
@@ -144,7 +145,7 @@ export default function ProfileSetupPage({ onProfileSetup }) {
           {error && <div className="error-message">{error}</div>}
 
           <button type="submit" disabled={loading} className="submit-btn">
-            {loading ? 'Creating...' : 'Create Profile'}
+            {loading ? 'Saving...' : (isEditing ? 'Save Changes' : 'Create Profile')}
           </button>
         </form>
       </div>
