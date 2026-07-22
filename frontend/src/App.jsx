@@ -42,10 +42,26 @@ export default function App() {
     }
   };
 
-  const handleLoginSuccess = (token) => {
+  const handleLoginSuccess = async (token) => {
     localStorage.setItem('token', token);
     setUser({ token });
-    setPage('profile-setup');
+    // Check if this user already has a profile
+    try {
+      const response = await fetch('/api/profile', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setProfile(data);
+        setPage('daily-log');
+      } else {
+        // No profile yet — send to setup
+        setPage('profile-setup');
+      }
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      setPage('profile-setup');
+    }
   };
 
   const handleProfileSetup = (profileData) => {
@@ -74,14 +90,12 @@ export default function App() {
       {page === 'login' && (
         <LoginPage onLoginSuccess={handleLoginSuccess} />
       )}
-      
       {page === 'profile-setup' && (
         <ProfileSetupPage onProfileSetup={handleProfileSetup} />
       )}
-      
       {page === 'daily-log' && profile && (
-        <DailyLogPage 
-          profile={profile} 
+        <DailyLogPage
+          profile={profile}
           user={user}
           onLogout={handleLogout}
         />
