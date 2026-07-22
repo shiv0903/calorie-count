@@ -58,9 +58,17 @@
   background: #f5f5f5;
 }
 
-.macro-protein { border-top: 3px solid #42a5f5; }
-.macro-carbs { border-top: 3px solid #ffa726; }
-.macro-fat { border-top: 3px solid #ef5350; }
+.macro-protein {
+  border-top: 3px solid #42a5f5;
+}
+
+.macro-carbs {
+  border-top: 3px solid #ffa726;
+}
+
+.macro-fat {
+  border-top: 3px solid #ef5350;
+}
 
 .macro-label {
   font-size: 0.8rem;
@@ -78,4 +86,91 @@
   background: #f9f9f9;
   padding: 15px;
   border-radius: 8px;
-  border-left: 4px
+  border-left: 4px solid;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-label {
+  color: #666;
+  font-weight: 600;
+}
+
+.status-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.meals-list h3 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.meals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.meal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.meal-info {
+  flex: 1;
+}
+
+.meal-name {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.meal-details {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.meal-macros {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.delete-btn {
+  background: #ff5252;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+}
+
+.no-meals {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 600px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+}
