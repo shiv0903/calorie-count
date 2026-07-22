@@ -22,25 +22,37 @@ export default function DailySummary({ summary, onMealDeleted }) {
 
   return (
     <div className="daily-summary-container">
-      <h2>📊 Daily Summary</h2>
-
+      <h2>Daily Summary</h2>
       <div className="summary-cards">
         <div className="summary-card">
           <div className="card-label">Target</div>
           <div className="card-value">{summary.daily_target}</div>
           <div className="card-unit">kcal</div>
         </div>
-
         <div className="summary-card">
           <div className="card-label">Consumed</div>
           <div className="card-value">{summary.total_calories}</div>
           <div className="card-unit">kcal</div>
         </div>
-
         <div className="summary-card">
           <div className="card-label">Remaining</div>
           <div className="card-value">{summary.remaining}</div>
           <div className="card-unit">kcal</div>
+        </div>
+      </div>
+
+      <div className="macros-row">
+        <div className="macro-card macro-protein">
+          <div className="macro-label">Protein</div>
+          <div className="macro-value">{summary.total_protein ?? 0}g</div>
+        </div>
+        <div className="macro-card macro-carbs">
+          <div className="macro-label">Carbs</div>
+          <div className="macro-value">{summary.total_carbs ?? 0}g</div>
+        </div>
+        <div className="macro-card macro-fat">
+          <div className="macro-label">Fat</div>
+          <div className="macro-value">{summary.total_fat ?? 0}g</div>
         </div>
       </div>
 
@@ -61,6 +73,9 @@ export default function DailySummary({ summary, onMealDeleted }) {
                   <div className="meal-name">{meal.dish_name}</div>
                   <div className="meal-details">
                     {meal.grams}g • {meal.calories} kcal
+                  </div>
+                  <div className="meal-macros">
+                    P: {meal.protein ?? 0}g · C: {meal.carbs ?? 0}g · F: {meal.fat ?? 0}g
                   </div>
                 </div>
                 <button
