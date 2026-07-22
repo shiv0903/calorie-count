@@ -1,5 +1,7 @@
 .daily-summary-container {
   background: white;
+  border-radius: 12px;
+  padding: 25px;
 }
 
 .daily-summary-container h2 {
@@ -23,55 +25,57 @@
   border-left: 4px solid #667eea;
 }
 
+.card-label {
+  color: #666;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
 .card-value {
   color: #333;
   font-size: 2rem;
   font-weight: 700;
 }
 
+.card-unit {
+  color: #999;
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+.macros-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.macro-card {
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  background: #f5f5f5;
+}
+
+.macro-protein { border-top: 3px solid #42a5f5; }
+.macro-carbs { border-top: 3px solid #ffa726; }
+.macro-fat { border-top: 3px solid #ef5350; }
+
+.macro-label {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.macro-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #333;
+}
+
 .status-badge {
   background: #f9f9f9;
   padding: 15px;
   border-radius: 8px;
-  margin-bottom: 25px;
-  border-left: 4px solid;
-}
-
-.meals-list h3 {
-  color: #333;
-  margin-top: 0;
-  margin-bottom: 15px;
-}
-
-.meal-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
-  margin-bottom: 10px;
-}
-
-.delete-btn {
-  background: #ff5252;
-  color: white;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.no-meals {
-  text-align: center;
-  color: #999;
-  padding: 20px;
-}
-
-@media (max-width: 600px) {
-  .summary-cards {
-    grid-template-columns: 1fr;
-  }
-}
+  border-left: 4px
