@@ -9,7 +9,6 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [diag, setDiag] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -25,7 +24,6 @@ export default function App() {
       const response = await fetch('/api/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setDiag(`Auto-login profile check: HTTP ${response.status}`);
       if (response.ok) {
         const data = await response.json();
         setUser({ token });
@@ -36,7 +34,7 @@ export default function App() {
         setPage('login');
       }
     } catch (error) {
-      setDiag(`Auto-login profile check ERROR: ${error.message}`);
+      console.error('Error fetching profile:', error);
       setPage('login');
     } finally {
       setLoading(false);
@@ -50,17 +48,15 @@ export default function App() {
       const response = await fetch('/api/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const bodyText = await response.text();
-      setDiag(`Login profile check: HTTP ${response.status} | body: ${bodyText.substring(0, 200)}`);
       if (response.ok) {
-        const data = JSON.parse(bodyText);
+        const data = await response.json();
         setProfile(data);
         setPage('daily-log');
       } else {
         setPage('profile-setup');
       }
     } catch (error) {
-      setDiag(`Login profile check ERROR: ${error.message}`);
+      console.error('Error checking profile:', error);
       setPage('profile-setup');
     }
   };
@@ -68,6 +64,10 @@ export default function App() {
   const handleProfileSetup = (profileData) => {
     setProfile(profileData);
     setPage('daily-log');
+  };
+
+  const handleEditProfile = () => {
+    setPage('profile-setup');
   };
 
   const handleLogout = () => {
@@ -88,22 +88,18 @@ export default function App() {
 
   return (
     <div className="app">
-      {diag && (
-        <div style={{ background: '#fff3cd', color: '#664d03', padding: '10px', fontSize: '13px', fontFamily: 'monospace', borderBottom: '1px solid #ddd', wordBreak: 'break-all' }}>
-          DIAGNOSTIC: {diag}
-        </div>
-      )}
       {page === 'login' && (
         <LoginPage onLoginSuccess={handleLoginSuccess} />
       )}
       {page === 'profile-setup' && (
-        <ProfileSetupPage onProfileSetup={handleProfileSetup} />
+        <ProfileSetupPage onProfileSetup={handleProfileSetup} existingProfile={profile} />
       )}
       {page === 'daily-log' && profile && (
         <DailyLogPage
           profile={profile}
           user={user}
           onLogout={handleLogout}
+          onEditProfile={handleEditProfile}
         />
       )}
     </div>
