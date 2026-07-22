@@ -94,3 +94,12 @@
 .custom-dish-actions .submit-btn {
   flex: 1;
 }
+
+.lookup-info {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}

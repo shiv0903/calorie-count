@@ -15,6 +15,10 @@ export default function MealForm({ onMealAdded }) {
   const [customCalories, setCustomCalories] = useState('');
   const [savingCustom, setSavingCustom] = useState(false);
 
+  // Calorie lookup state
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookupInfo, setLookupInfo] = useState('');
+
   useEffect(() => {
     fetchDishes();
   }, []);
@@ -47,6 +51,27 @@ export default function MealForm({ onMealAdded }) {
     }
   };
 
+  const handleLookupCalories = async () => {
+    setError('');
+    setLookupInfo('');
+    if (!customName.trim()) {
+      setError('Enter a dish name first, then look up calories');
+      return;
+    }
+    setLookingUp(true);
+    try {
+      const response = await api.get(
+        `/api/lookup-calories?name=${encodeURIComponent(customName.trim())}`
+      );
+      setCustomCalories(String(response.data.calories_per_100g));
+      setLookupInfo(`Matched: ${response.data.matched_food}`);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Could not look up calories');
+    } finally {
+      setLookingUp(false);
+    }
+  };
+
   const handleAddCustomDish = async () => {
     setError('');
     if (!customName.trim() || !customCalories) {
@@ -59,13 +84,11 @@ export default function MealForm({ onMealAdded }) {
         `/api/dishes?name=${encodeURIComponent(customName.trim())}&calories_per_100g=${parseFloat(customCalories)}`
       );
       const newDish = response.data;
-      // Refresh the dropdown so the new dish appears
       await fetchDishes();
-      // Auto-select the dish we just created
       setSelectedDish(String(newDish.id));
-      // Reset and hide the custom form
       setCustomName('');
       setCustomCalories('');
+      setLookupInfo('');
       setShowCustom(false);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to add custom dish');
@@ -104,7 +127,7 @@ export default function MealForm({ onMealAdded }) {
           <button
             type="button"
             className="link-btn"
-            onClick={() => { setShowCustom(true); setError(''); }}
+            onClick={() => { setShowCustom(true); setError(''); setLookupInfo(''); }}
           >
             + Dish not listed? Add it
           </button>
@@ -122,6 +145,15 @@ export default function MealForm({ onMealAdded }) {
                 placeholder="e.g. Grilled Salmon"
               />
             </div>
+            <button
+              type="button"
+              className="link-btn"
+              onClick={handleLookupCalories}
+              disabled={lookingUp}
+            >
+              {lookingUp ? 'Looking up...' : 'Look up calories automatically'}
+            </button>
+            {lookupInfo && <div className="lookup-info">{lookupInfo}</div>}
             <div className="form-group">
               <label htmlFor="customCalories">Calories per 100g</label>
               <input
@@ -145,7 +177,7 @@ export default function MealForm({ onMealAdded }) {
               <button
                 type="button"
                 className="cancel-btn"
-                onClick={() => { setShowCustom(false); setError(''); }}
+                onClick={() => { setShowCustom(false); setError(''); setLookupInfo(''); }}
               >
                 Cancel
               </button>
