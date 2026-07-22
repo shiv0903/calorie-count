@@ -99,18 +99,18 @@ def get_profile(db: Session = Depends(get_db), current_user: User = Depends(get_
 @app.get("/api/dishes")
 def get_dishes(db: Session = Depends(get_db)):
     dishes = db.query(Dish).all()
-    return [{"id": d.id, "name": d.name, "calories_per_100g": d.calories_per_100g} for d in dishes]
+    return [{"id": d.id, "name": d.name, "calories_per_100g": d.calories_per_100g, "protein_per_100g": d.protein_per_100g, "carbs_per_100g": d.carbs_per_100g, "fat_per_100g": d.fat_per_100g} for d in dishes]
 
 @app.post("/api/dishes")
-def create_dish(name: str, calories_per_100g: float, cuisine: str = "Custom", db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_dish(name: str, calories_per_100g: float, protein_per_100g: float = 0, carbs_per_100g: float = 0, fat_per_100g: float = 0, cuisine: str = "Custom", db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     existing = db.query(Dish).filter(Dish.name == name).first()
     if existing:
-        return {"id": existing.id, "name": existing.name, "calories_per_100g": existing.calories_per_100g}
-    new_dish = Dish(name=name, cuisine=cuisine, calories_per_100g=calories_per_100g)
+        return {"id": existing.id, "name": existing.name, "calories_per_100g": existing.calories_per_100g, "protein_per_100g": existing.protein_per_100g, "carbs_per_100g": existing.carbs_per_100g, "fat_per_100g": existing.fat_per_100g}
+    new_dish = Dish(name=name, cuisine=cuisine, calories_per_100g=calories_per_100g, protein_per_100g=protein_per_100g, carbs_per_100g=carbs_per_100g, fat_per_100g=fat_per_100g)
     db.add(new_dish)
     db.commit()
     db.refresh(new_dish)
-    return {"id": new_dish.id, "name": new_dish.name, "calories_per_100g": new_dish.calories_per_100g}
+    return {"id": new_dish.id, "name": new_dish.name, "calories_per_100g": new_dish.calories_per_100g, "protein_per_100g": new_dish.protein_per_100g, "carbs_per_100g": new_dish.carbs_per_100g, "fat_per_100g": new_dish.fat_per_100g}
 
 @app.get("/api/lookup-calories")
 def lookup_calories(name: str, current_user: User = Depends(get_current_user)):
@@ -131,18 +131,33 @@ def lookup_calories(name: str, current_user: User = Depends(get_current_user)):
     if not foods:
         raise HTTPException(status_code=404, detail=f"No nutrition match found for '{name}'")
 
+    def find_nutrient(nutrients, keyword, unit_match):
+        for n in nutrients:
+            nm = (n.get("nutrientName") or "").lower()
+            un = (n.get("unitName") or "").lower()
+            if keyword in nm and un == unit_match:
+                val = n.get("value")
+                if val is not None:
+                    return round(float(val), 1)
+        return None
+
     for food in foods:
-        for nutrient in food.get("foodNutrients", []):
-            nutrient_name = (nutrient.get("nutrientName") or "").lower()
-            unit = (nutrient.get("unitName") or "").lower()
-            if "energy" in nutrient_name and unit == "kcal":
-                value = nutrient.get("value")
-                if value is not None:
-                    return {
-                        "name": name,
-                        "matched_food": food.get("description", name),
-                        "calories_per_100g": round(float(value), 1),
-                    }
+        nutrients = food.get("foodNutrients", [])
+        calories = find_nutrient(nutrients, "energy", "kcal")
+        if calories is not None:
+            protein = find_nutrient(nutrients, "protein", "g") or 0
+            fat = find_nutrient(nutrients, "total lipid", "g")
+            if fat is None:
+                fat = find_nutrient(nutrients, "fat", "g") or 0
+            carbs = find_nutrient(nutrients, "carbohydrate", "g") or 0
+            return {
+                "name": name,
+                "matched_food": food.get("description", name),
+                "calories_per_100g": calories,
+                "protein_per_100g": protein,
+                "carbs_per_100g": carbs,
+                "fat_per_100g": fat,
+            }
     raise HTTPException(status_code=404, detail=f"No calorie data found for '{name}'")
 
 @app.post("/api/meals")
@@ -153,8 +168,12 @@ def create_meal(meal: MealCreate, db: Session = Depends(get_db), current_user: U
     meal_date = meal.date if meal.date else datetime.now().date()
     if meal_date > datetime.now().date():
         raise HTTPException(status_code=400, detail="Cannot log meals for a future date")
-    calories = int((dish.calories_per_100g / 100) * meal.grams_confirmed)
-    new_meal = Meal(user_id=current_user.id, dish_id=meal.dish_id, grams_confirmed=meal.grams_confirmed, calories=calories, date=meal_date)
+    factor = meal.grams_confirmed / 100
+    calories = int((dish.calories_per_100g or 0) * factor)
+    protein = round((dish.protein_per_100g or 0) * factor, 1)
+    carbs = round((dish.carbs_per_100g or 0) * factor, 1)
+    fat = round((dish.fat_per_100g or 0) * factor, 1)
+    new_meal = Meal(user_id=current_user.id, dish_id=meal.dish_id, grams_confirmed=meal.grams_confirmed, calories=calories, protein=protein, carbs=carbs, fat=fat, date=meal_date)
     db.add(new_meal)
     db.commit()
     db.refresh(new_meal)
@@ -167,7 +186,7 @@ def get_meals(date: str = None, db: Session = Depends(get_db), current_user: Use
     else:
         date = datetime.strptime(date, "%Y-%m-%d").date()
     meals = db.query(Meal).filter(Meal.user_id == current_user.id, Meal.date == date).all()
-    return [{"id": m.id, "dish_id": m.dish_id, "dish_name": db.query(Dish).filter(Dish.id == m.dish_id).first().name, "grams_confirmed": m.grams_confirmed, "calories": m.calories, "date": m.date.isoformat()} for m in meals]
+    return [{"id": m.id, "dish_id": m.dish_id, "dish_name": db.query(Dish).filter(Dish.id == m.dish_id).first().name, "grams_confirmed": m.grams_confirmed, "calories": m.calories, "protein": m.protein, "carbs": m.carbs, "fat": m.fat, "date": m.date.isoformat()} for m in meals]
 
 @app.delete("/api/meals/{meal_id}")
 def delete_meal(meal_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -189,6 +208,9 @@ def get_daily_summary(date: str = None, db: Session = Depends(get_db), current_u
         date = datetime.strptime(date, "%Y-%m-%d").date()
     meals = db.query(Meal).filter(Meal.user_id == current_user.id, Meal.date == date).all()
     total_calories = sum(m.calories for m in meals)
+    total_protein = round(sum(m.protein or 0 for m in meals), 1)
+    total_carbs = round(sum(m.carbs or 0 for m in meals), 1)
+    total_fat = round(sum(m.fat or 0 for m in meals), 1)
     bmr = calculate_bmr(profile.weight, profile.height, profile.age, profile.sex)
     tdee = calculate_tdee(bmr, profile.activity_level)
     if profile.goal == "lose":
@@ -204,20 +226,11 @@ def get_daily_summary(date: str = None, db: Session = Depends(get_db), current_u
         status_val = "On Target"
     else:
         status_val = "Over"
-    return {"date": date.isoformat(), "total_calories": total_calories, "daily_target": int(daily_target), "remaining": remaining, "status": status_val, "meals": [{"id": m.id, "dish_name": db.query(Dish).filter(Dish.id == m.dish_id).first().name, "calories": m.calories, "grams": m.grams_confirmed} for m in meals]}
+    return {"date": date.isoformat(), "total_calories": total_calories, "total_protein": total_protein, "total_carbs": total_carbs, "total_fat": total_fat, "daily_target": int(daily_target), "remaining": remaining, "status": status_val, "meals": [{"id": m.id, "dish_name": db.query(Dish).filter(Dish.id == m.dish_id).first().name, "calories": m.calories, "grams": m.grams_confirmed, "protein": m.protein, "carbs": m.carbs, "fat": m.fat} for m in meals]}
 
 @app.get("/api/health")
 def health_check():
     return {"status": "ok"}
-
-@app.get("/api/debug")
-def debug():
-    info = {}
-    info["cwd"] = os.getcwd()
-    info["static_exists"] = os.path.exists("/app/static")
-    info["app_contents"] = os.listdir("/app") if os.path.exists("/app") else "no /app"
-    info["static_contents"] = os.listdir("/app/static") if os.path.exists("/app/static") else "no /app/static"
-    return info
 
 app.mount("/static", StaticFiles(directory="/app/static/static"), name="static")
 
