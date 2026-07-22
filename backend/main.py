@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -23,6 +23,22 @@ def get_db():
     finally:
         db.close()
 
+def get_current_user(authorization: str = Header(None), db: Session = Depends(get_db)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        token = authorization.replace("Bearer ", "")
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
 @app.post("/api/auth/signup")
 def signup(user: UserCreate, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == user.email).first()
@@ -45,8 +61,8 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     return {"id": db_user.id, "email": db_user.email, "token": token}
 
 @app.post("/api/profile")
-def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
-    existing = db.query(Profile).first()
+def create_profile(profile: ProfileCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    existing = db.query(Profile).filter(Profile.user_id == current_user.id).first()
     if existing:
         existing.weight = profile.weight
         existing.height = profile.height
@@ -57,15 +73,15 @@ def create_profile(profile: ProfileCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(existing)
         return existing
-    new_profile = Profile(user_id=1, weight=profile.weight, height=profile.height, age=profile.age, sex=profile.sex, activity_level=profile.activity_level, goal=profile.goal)
+    new_profile = Profile(user_id=current_user.id, weight=profile.weight, height=profile.height, age=profile.age, sex=profile.sex, activity_level=profile.activity_level, goal=profile.goal)
     db.add(new_profile)
     db.commit()
     db.refresh(new_profile)
     return new_profile
 
 @app.get("/api/profile")
-def get_profile(db: Session = Depends(get_db)):
-    profile = db.query(Profile).first()
+def get_profile(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     bmr = calculate_bmr(profile.weight, profile.height, profile.age, profile.sex)
@@ -84,7 +100,7 @@ def get_dishes(db: Session = Depends(get_db)):
     return [{"id": d.id, "name": d.name, "calories_per_100g": d.calories_per_100g} for d in dishes]
 
 @app.post("/api/dishes")
-def create_dish(name: str, calories_per_100g: float, cuisine: str = "Custom", db: Session = Depends(get_db)):
+def create_dish(name: str, calories_per_100g: float, cuisine: str = "Custom", db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     existing = db.query(Dish).filter(Dish.name == name).first()
     if existing:
         return {"id": existing.id, "name": existing.name, "calories_per_100g": existing.calories_per_100g}
@@ -95,29 +111,29 @@ def create_dish(name: str, calories_per_100g: float, cuisine: str = "Custom", db
     return {"id": new_dish.id, "name": new_dish.name, "calories_per_100g": new_dish.calories_per_100g}
 
 @app.post("/api/meals")
-def create_meal(meal: MealCreate, db: Session = Depends(get_db)):
+def create_meal(meal: MealCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     dish = db.query(Dish).filter(Dish.id == meal.dish_id).first()
     if not dish:
         raise HTTPException(status_code=404, detail="Dish not found")
     calories = int((dish.calories_per_100g / 100) * meal.grams_confirmed)
-    new_meal = Meal(user_id=1, dish_id=meal.dish_id, grams_confirmed=meal.grams_confirmed, calories=calories, date=meal.date or datetime.now().date())
+    new_meal = Meal(user_id=current_user.id, dish_id=meal.dish_id, grams_confirmed=meal.grams_confirmed, calories=calories, date=meal.date or datetime.now().date())
     db.add(new_meal)
     db.commit()
     db.refresh(new_meal)
     return new_meal
 
 @app.get("/api/meals")
-def get_meals(date: str = None, db: Session = Depends(get_db)):
+def get_meals(date: str = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if not date:
         date = datetime.now().date()
     else:
         date = datetime.strptime(date, "%Y-%m-%d").date()
-    meals = db.query(Meal).filter(Meal.date == date).all()
+    meals = db.query(Meal).filter(Meal.user_id == current_user.id, Meal.date == date).all()
     return [{"id": m.id, "dish_id": m.dish_id, "dish_name": db.query(Dish).filter(Dish.id == m.dish_id).first().name, "grams_confirmed": m.grams_confirmed, "calories": m.calories, "date": m.date.isoformat()} for m in meals]
 
 @app.delete("/api/meals/{meal_id}")
-def delete_meal(meal_id: int, db: Session = Depends(get_db)):
-    meal = db.query(Meal).filter(Meal.id == meal_id).first()
+def delete_meal(meal_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    meal = db.query(Meal).filter(Meal.id == meal_id, Meal.user_id == current_user.id).first()
     if not meal:
         raise HTTPException(status_code=404, detail="Meal not found")
     db.delete(meal)
@@ -125,15 +141,15 @@ def delete_meal(meal_id: int, db: Session = Depends(get_db)):
     return {"message": "Meal deleted"}
 
 @app.get("/api/daily-summary")
-def get_daily_summary(date: str = None, db: Session = Depends(get_db)):
-    profile = db.query(Profile).first()
+def get_daily_summary(date: str = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
     if not date:
         date = datetime.now().date()
     else:
         date = datetime.strptime(date, "%Y-%m-%d").date()
-    meals = db.query(Meal).filter(Meal.date == date).all()
+    meals = db.query(Meal).filter(Meal.user_id == current_user.id, Meal.date == date).all()
     total_calories = sum(m.calories for m in meals)
     bmr = calculate_bmr(profile.weight, profile.height, profile.age, profile.sex)
     tdee = calculate_tdee(bmr, profile.activity_level)
@@ -165,7 +181,6 @@ def debug():
     info["static_contents"] = os.listdir("/app/static") if os.path.exists("/app/static") else "no /app/static"
     return info
 
-# Mount the inner static folder so /static/js and /static/css resolve correctly
 app.mount("/static", StaticFiles(directory="/app/static/static"), name="static")
 
 @app.get("/")
