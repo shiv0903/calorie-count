@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from datetime import date
+import datetime
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -29,7 +29,6 @@ class ProfileResponse(BaseModel):
     bmr: float
     tdee: float
     daily_target: int
-    
     class Config:
         from_attributes = True
 
@@ -37,14 +36,13 @@ class DishResponse(BaseModel):
     id: int
     name: str
     calories_per_100g: float
-    
     class Config:
         from_attributes = True
 
 class MealCreate(BaseModel):
     dish_id: int
     grams_confirmed: float
-    date: Optional[date] = None
+    date: Optional[datetime.date] = None
 
 class MealResponse(BaseModel):
     id: int
@@ -52,13 +50,12 @@ class MealResponse(BaseModel):
     dish_name: str
     grams_confirmed: float
     calories: int
-    date: date
-    
+    date: datetime.date
     class Config:
         from_attributes = True
 
 class DailySummaryResponse(BaseModel):
-    date: date
+    date: datetime.date
     total_calories: int
     daily_target: int
     remaining: int
