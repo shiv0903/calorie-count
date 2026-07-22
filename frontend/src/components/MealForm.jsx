@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import '../styles/MealForm.css';
 
-export default function MealForm({ onMealAdded }) {
+export default function MealForm({ onMealAdded, selectedDate }) {
   const [dishes, setDishes] = useState([]);
   const [selectedDish, setSelectedDish] = useState('');
   const [grams, setGrams] = useState('');
@@ -40,6 +40,7 @@ export default function MealForm({ onMealAdded }) {
       await api.post('/api/meals', {
         dish_id: parseInt(selectedDish),
         grams_confirmed: parseFloat(grams),
+        date: selectedDate,
       });
       setSelectedDish('');
       setGrams('');
