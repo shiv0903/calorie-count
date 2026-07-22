@@ -41,13 +41,12 @@ export default function DailyLogPage({ profile, user, onLogout }) {
     <div className="daily-log-container">
       <header className="daily-log-header">
         <div className="header-content">
-          <h1>🏥 Calorie Count</h1>
+          <h1>Calorie Count</h1>
           <button onClick={onLogout} className="logout-btn">
             Logout
           </button>
         </div>
       </header>
-
       <div className="daily-log-content">
         <div className="date-selector">
           <input
@@ -57,12 +56,10 @@ export default function DailyLogPage({ profile, user, onLogout }) {
             className="date-input"
           />
         </div>
-
         <div className="log-grid">
           <div className="log-section">
-            <MealForm onMealAdded={handleMealAdded} />
+            <MealForm onMealAdded={handleMealAdded} selectedDate={date} />
           </div>
-
           <div className="log-section">
             {loading ? (
               <div className="loader">Loading...</div>
