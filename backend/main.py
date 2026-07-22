@@ -151,7 +151,8 @@ def create_meal(meal: MealCreate, db: Session = Depends(get_db), current_user: U
     if not dish:
         raise HTTPException(status_code=404, detail="Dish not found")
     calories = int((dish.calories_per_100g / 100) * meal.grams_confirmed)
-    new_meal = Meal(user_id=current_user.id, dish_id=meal.dish_id, grams_confirmed=meal.grams_confirmed, calories=calories, date=meal.date or datetime.now().date())
+    meal_date = meal.date if meal.date else datetime.now().date()
+    new_meal = Meal(user_id=current_user.id, dish_id=meal.dish_id, grams_confirmed=meal.grams_confirmed, calories=calories, date=meal_date)
     db.add(new_meal)
     db.commit()
     db.refresh(new_meal)

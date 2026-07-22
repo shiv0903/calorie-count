@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
 import '../styles/MealForm.css';
 
+function extractError(err, fallback) {
+  const detail = err.response?.data?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail) && detail.length > 0 && detail[0].msg) return detail[0].msg;
+  return fallback;
+}
+
 export default function MealForm({ onMealAdded, selectedDate }) {
   const [dishes, setDishes] = useState([]);
   const [selectedDish, setSelectedDish] = useState('');
@@ -9,13 +16,11 @@ export default function MealForm({ onMealAdded, selectedDate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Custom dish state
   const [showCustom, setShowCustom] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customCalories, setCustomCalories] = useState('');
   const [savingCustom, setSavingCustom] = useState(false);
 
-  // Calorie lookup state
   const [lookingUp, setLookingUp] = useState(false);
   const [lookupInfo, setLookupInfo] = useState('');
 
@@ -46,7 +51,7 @@ export default function MealForm({ onMealAdded, selectedDate }) {
       setGrams('');
       onMealAdded();
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to add meal');
+      setError(extractError(err, 'Failed to add meal'));
     } finally {
       setLoading(false);
     }
@@ -67,7 +72,7 @@ export default function MealForm({ onMealAdded, selectedDate }) {
       setCustomCalories(String(response.data.calories_per_100g));
       setLookupInfo(`Matched: ${response.data.matched_food}`);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Could not look up calories');
+      setError(extractError(err, 'Could not look up calories'));
     } finally {
       setLookingUp(false);
     }
@@ -92,7 +97,7 @@ export default function MealForm({ onMealAdded, selectedDate }) {
       setLookupInfo('');
       setShowCustom(false);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to add custom dish');
+      setError(extractError(err, 'Failed to add custom dish'));
     } finally {
       setSavingCustom(false);
     }
