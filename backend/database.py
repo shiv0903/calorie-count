@@ -1,13 +1,20 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, Dish
 
-# Database URL - SQLite for local, PostgreSQL for production
-DATABASE_URL = "sqlite:///./calorie_count.db"
+# Use Postgres in production (Railway sets DATABASE_URL), fall back to SQLite locally
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./calorie_count.db")
 
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
-)
+# Railway/Heroku sometimes provide "postgres://" but SQLAlchemy needs "postgresql://"
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# SQLite needs a special connect arg; Postgres does not
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -20,7 +27,7 @@ def seed_dishes(db):
     existing_dishes = db.query(Dish).count()
     if existing_dishes > 0:
         return
-    
+
     # Indian Dishes
     indian_dishes = [
         Dish(name="Butter Chicken", cuisine="Indian", calories_per_100g=150),
@@ -68,7 +75,7 @@ def seed_dishes(db):
         Dish(name="Tahini Paste", cuisine="MiddleEastern", calories_per_100g=595),
         Dish(name="Tomato Lentil Soup", cuisine="MiddleEastern", calories_per_100g=90),
     ]
-    
+
     db.add_all(indian_dishes)
     db.commit()
 
