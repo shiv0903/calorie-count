@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import os
 import jwt
+import requests
 from database import engine, SessionLocal, Base
 from models import User, Profile, Dish, Meal
 from schemas import UserCreate, UserLogin, ProfileCreate, MealCreate
@@ -15,6 +16,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 SECRET_KEY = "your-secret-key"
+USDA_API_KEY = os.getenv("USDA_API_KEY", "")
 
 def get_db():
     db = SessionLocal()
@@ -109,6 +111,40 @@ def create_dish(name: str, calories_per_100g: float, cuisine: str = "Custom", db
     db.commit()
     db.refresh(new_dish)
     return {"id": new_dish.id, "name": new_dish.name, "calories_per_100g": new_dish.calories_per_100g}
+
+@app.get("/api/lookup-calories")
+def lookup_calories(name: str, current_user: User = Depends(get_current_user)):
+    if not USDA_API_KEY:
+        raise HTTPException(status_code=503, detail="Calorie lookup is not configured")
+    try:
+        resp = requests.get(
+            "https://api.nal.usda.gov/fdc/v1/foods/search",
+            params={"api_key": USDA_API_KEY, "query": name, "pageSize": 5, "dataType": "Survey (FNDDS),Foundation,SR Legacy"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception:
+        raise HTTPException(status_code=502, detail="Could not reach the nutrition database")
+
+    foods = data.get("foods", [])
+    if not foods:
+        raise HTTPException(status_code=404, detail=f"No nutrition match found for '{name}'")
+
+    # Find the calorie (Energy, kcal) value in the first matching food
+    for food in foods:
+        for nutrient in food.get("foodNutrients", []):
+            nutrient_name = (nutrient.get("nutrientName") or "").lower()
+            unit = (nutrient.get("unitName") or "").lower()
+            if "energy" in nutrient_name and unit == "kcal":
+                value = nutrient.get("value")
+                if value is not None:
+                    return {
+                        "name": name,
+                        "matched_food": food.get("description", name),
+                        "calories_per_100g": round(float(value), 1),
+                    }
+    raise HTTPException(status_code=404, detail=f"No calorie data found for '{name}'")
 
 @app.post("/api/meals")
 def create_meal(meal: MealCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
